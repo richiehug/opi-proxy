@@ -1,0 +1,23 @@
+{
+  "rx5000-default": {
+    "terminalModel": "RX5000"
+  },
+  "dx8000-default": {
+    "terminalModel": "DX8000"
+  },
+  "ex8000-default": {
+    "terminalModel": "EX8000"
+  },
+  "a77-default": {
+    "terminalModel": "A77"
+  },
+  "q30-default": {
+    "terminalModel": "Q30"
+  },
+  "im15-default": {
+    "terminalModel": "IM15"
+  },
+  "im30-default": {
+    "terminalModel": "IM30"
+  }
+}

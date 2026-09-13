@@ -1,0 +1,14 @@
+.env
+
+config/auth.json
+config/terminal-profiles.json
+config/terminals.json
+
+data/*
+!data/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+certs/*
+!certs/.gitkeep

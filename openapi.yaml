@@ -1,0 +1,1314 @@
+openapi: 3.1.0
+info:
+  title: OPI Proxy API
+  version: 1.0.0
+  description: |
+    HTTP and JSON API for OPI Proxy.
+
+    The proxy exposes a local API for OPI-compatible terminal integrations while handling OPI XML and TCP internally.
+servers:
+  - url: http://127.0.0.1:3001
+    description: Local HTTP runtime
+  - url: https://127.0.0.1:3001
+    description: Local HTTPS runtime
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+  parameters:
+    IdempotencyKeyHeader:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Reuse the same key with the same route, async preference, and JSON body to receive the same response again. Reusing a key with different request content returns HTTP 409.
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    HealthResponse:
+      type: object
+      required: [service, version]
+      properties:
+        service:
+          type: string
+        version:
+          type: string
+    ErrorField:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    ErrorBody:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorField'
+    ErrorResponse:
+      type: object
+      required: [error, requestId]
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+        requestId:
+          type: string
+    ReceiptHandling:
+      type: object
+      properties:
+        customer:
+          type: string
+          enum: [external, local, unavailable]
+        merchant:
+          type: string
+          enum: [external, local, unavailable]
+    ResponseMode:
+      type: string
+      enum: [sync, async]
+      description: Overrides the configured response mode for async-enabled terminal operations.
+    Amount:
+      type: number
+      exclusiveMinimum: 0
+      description: Positive monetary amount using the transaction currency.
+      examples: [12.50]
+    ManualTransactionStatus:
+      type: string
+      enum:
+        - authorized
+        - succeeded
+        - captured
+        - cancelled
+        - reversed
+        - refunded
+        - declined
+        - failed
+      description: Conclusive locally reconciled status. The statuses accepted for a specific transaction also depend on its transaction type and payment kind.
+    TransactionPatchRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        status:
+          $ref: '#/components/schemas/ManualTransactionStatus'
+        amount:
+          $ref: '#/components/schemas/Amount'
+        tip:
+          $ref: '#/components/schemas/Amount'
+      examples:
+        reconciliation:
+          summary: Reconcile an uncertain sale and correct its amounts
+          value:
+            status: succeeded
+            amount: 12.50
+            tip: 2.00
+    AsyncAcceptedResponse:
+      type: object
+      required: [transactionId, status, terminalAlias]
+      properties:
+        transactionId:
+          type: string
+        status:
+          type: string
+          enum: [pending]
+        terminalAlias:
+          type: string
+    PaymentRequest:
+      type: object
+      required: [reference, amount]
+      properties:
+        reference:
+          type: string
+        amount:
+          type: number
+          minimum: 0
+        cashback:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        language:
+          type: string
+        autoCapture:
+          type: boolean
+        shiftNumber:
+          type: integer
+          minimum: 0
+        clerkId:
+          type: string
+        requestTransactionInformation:
+          type: boolean
+        requestToken:
+          type: boolean
+        requestReceiptHeader:
+          type: boolean
+        paymentMethods:
+          type: array
+          items:
+            type: string
+        receiptHandling:
+          $ref: '#/components/schemas/ReceiptHandling'
+        forceAcceptance:
+          type: boolean
+        orderType:
+          type: string
+          enum: [mail, phone]
+        card:
+          type: object
+          properties:
+            number:
+              type: string
+            expiryMonth:
+              type: integer
+            expiryYear:
+              type: integer
+        responseMode:
+          $ref: '#/components/schemas/ResponseMode'
+    RefundRequest:
+      type: object
+      required: [reference, amount]
+      properties:
+        reference:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        language:
+          type: string
+        shiftNumber:
+          type: integer
+          minimum: 0
+        clerkId:
+          type: string
+        paymentMethods:
+          type: array
+          items:
+            type: string
+        receiptHandling:
+          $ref: '#/components/schemas/ReceiptHandling'
+        responseMode:
+          $ref: '#/components/schemas/ResponseMode'
+    FollowUpRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        terminalAlias:
+          type: string
+        currency:
+          type: string
+        language:
+          type: string
+        shiftNumber:
+          type: integer
+          minimum: 0
+        clerkId:
+          type: string
+        paymentMethods:
+          type: array
+          items:
+            type: string
+        receiptHandling:
+          $ref: '#/components/schemas/ReceiptHandling'
+        responseMode:
+          $ref: '#/components/schemas/ResponseMode'
+    ReversalRequest:
+      allOf:
+        - $ref: '#/components/schemas/FollowUpRequest'
+        - type: object
+          properties:
+            autoConfirm:
+              type: boolean
+              description: When true, the proxy automatically answers OPI GetConfirmation prompts for this PaymentReversal. When omitted or false, confirmation remains terminal-side.
+    ServiceRequest:
+      type: object
+      properties:
+        currency:
+          type: string
+        language:
+          type: string
+        shiftNumber:
+          type: integer
+          minimum: 0
+        clerkId:
+          type: string
+        receiptHandling:
+          $ref: '#/components/schemas/ReceiptHandling'
+        responseMode:
+          $ref: '#/components/schemas/ResponseMode'
+    ForcedServiceRequest:
+      allOf:
+        - $ref: '#/components/schemas/ServiceRequest'
+        - type: object
+          properties:
+            force:
+              type: boolean
+    ReceiptItem:
+      type: object
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+        target:
+          type: string
+        filename:
+          type: string
+        location:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        contentType:
+          type: string
+        sizeBytes:
+          type: integer
+        receiptBody:
+          type: string
+    ReceiptSummary:
+      type: object
+      properties:
+        count:
+          type: integer
+        customerReceipt:
+          type: boolean
+        merchantReceipt:
+          type: boolean
+        location:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              role:
+                type: string
+              target:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+              contentType:
+                type: string
+    DccResult:
+      type: object
+      description: Present when the terminal offered DCC. Accepted indicates whether the cardholder chose the billing currency instead of the transaction currency.
+      required: [offered, accepted]
+      properties:
+        offered:
+          type: boolean
+        accepted:
+          type: boolean
+        amount:
+          type: string
+          description: Cardholder billing amount offered by DCC.
+        currency:
+          type: string
+          description: Cardholder billing currency, for example MXN.
+        exchangeRate:
+          type: string
+        markupPercentage:
+          type: string
+    Transaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        parentTransactionId:
+          type: string
+        reference:
+          type: string
+        amount:
+          type: string
+        totalAmount:
+          type: string
+        tip:
+          type: string
+        cashback:
+          type: string
+        currency:
+          type: string
+        dcc:
+          $ref: '#/components/schemas/DccResult'
+        terminalAlias:
+          type: string
+        terminalModel:
+          type: string
+        deviceTerminalId:
+          type: string
+        type:
+          type: string
+        paymentKind:
+          type: string
+        status:
+          type: string
+        paymentMethod:
+          type: string
+        approvalCode:
+          type: string
+        trxReferenceNumber:
+          type: string
+        maskedCardNumber:
+          type: string
+        forceAcceptance:
+          type: boolean
+          description: Present and true only when the merchant requested Force Acceptance for this payment transaction.
+        systemAvailable:
+          type: boolean
+          description: True when a Force Acceptance payment returned terminal decline reason 0, indicating normal online authorization is available again.
+        failure:
+          type: object
+          properties:
+            code:
+              type: string
+            category:
+              type: string
+            message:
+              type: string
+            hostDeclineReason:
+              type: string
+            terminalDeclineReason:
+              type: string
+            forceAcceptanceRelevant:
+              type: boolean
+        overallResult:
+          type: string
+          description: Terminal result retained for failed or uncertain transactions; omitted when the final status is already conclusive.
+        recoveryNote:
+          type: string
+        receipts:
+          $ref: '#/components/schemas/ReceiptSummary'
+        operations:
+          type: array
+          items:
+            type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TransactionSuccess:
+      type: object
+      properties:
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        requestId:
+          type: string
+    TransactionReadEnvelope:
+      type: object
+      properties:
+        message:
+          type: string
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        requestId:
+          type: string
+    ReceiptBundleEnvelope:
+      type: object
+      properties:
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        receipts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReceiptItem'
+        requestId:
+          type: string
+    ServiceReceiptItem:
+      type: object
+      properties:
+        id:
+          type: string
+        operation:
+          type: string
+        requestId:
+          type: string
+        opiRequestType:
+          type: string
+        role:
+          type: string
+        title:
+          type: string
+        target:
+          type: string
+        filename:
+          type: string
+        location:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        contentType:
+          type: string
+        sizeBytes:
+          type: integer
+    TerminalReceiptItem:
+      allOf:
+        - $ref: '#/components/schemas/ServiceReceiptItem'
+        - type: object
+          properties:
+            body:
+              type: string
+    TerminalReceiptBundle:
+      type: object
+      properties:
+        sourceType:
+          type: string
+          enum: [transaction, service]
+        operation:
+          type: string
+        opiRequestType:
+          type: string
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        service:
+          type: object
+          properties:
+            operation:
+              type: string
+            requestId:
+              type: string
+            opiRequestType:
+              type: string
+        receipts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TerminalReceiptItem'
+    TerminalReceiptLatestEnvelope:
+      type: object
+      properties:
+        terminalAlias:
+          type: string
+        receipt:
+          $ref: '#/components/schemas/TerminalReceiptBundle'
+        requestId:
+          type: string
+    TerminalReceiptListEnvelope:
+      type: object
+      properties:
+        terminalAlias:
+          type: string
+        receipts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TerminalReceiptBundle'
+        requestId:
+          type: string
+    SupportedBrand:
+      type: object
+      properties:
+        code:
+          type: string
+        paymentMethod:
+          type: string
+        displayName:
+          type: string
+        module:
+          type: string
+    ReconciliationSummary:
+      type: object
+      properties:
+        shiftNumber:
+          type: string
+        clerkId:
+          type: string
+        status:
+          type: string
+        firstTransactionDate:
+          type: string
+        lastTransactionDate:
+          type: string
+        circuitTotals:
+          type: array
+          items:
+            type: object
+            properties:
+              cardCircuit:
+                type: string
+              numberOfPayments:
+                type: string
+              acquirer:
+                type: string
+              totalAmount:
+                type: string
+              currency:
+                type: string
+    TerminalServiceSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        terminalAlias:
+          type: string
+        operation:
+          type: string
+        opiRequestType:
+          type: string
+        abortedTransactionId:
+          type: string
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        status:
+          type: string
+        deviceTerminalId:
+          type: string
+        terminalIp:
+          type: string
+        appVersion:
+          type: string
+        ep2Mid:
+          type: string
+        terminalStatus:
+          type: string
+        terminalSubStatus:
+          type: string
+        initialisedAcquirers:
+          type: array
+          items:
+            type: string
+        supportedBrands:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportedBrand'
+        reconciliation:
+          $ref: '#/components/schemas/ReconciliationSummary'
+        details:
+          type: object
+          additionalProperties: true
+        receipts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceReceiptItem'
+        terminalMessages:
+          type: array
+          items:
+            type: string
+        requestId:
+          type: string
+    RepeatLastMessageResponse:
+      type: object
+      required: [terminalAlias, transactionUpdated, transaction, requestId]
+      properties:
+        terminalAlias:
+          type: string
+        transactionUpdated:
+          type: boolean
+          description: True when the proxy changed the stored transaction to reflect the terminal's OriginalHeader result; false when the transaction was verified as already current.
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        requestId:
+          type: string
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      security: []
+      summary: Health check
+      responses:
+        '200':
+          description: Service health
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /terminals/{terminalAlias}/info:
+    get:
+      summary: Read terminal info
+      description: Returns terminal identity, software, network, service-center, acquirer, and available card-circuit information gathered through the proxy.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Terminal info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  terminalAlias:
+                    type: string
+                  terminalMessages:
+                    type: array
+                    items:
+                      type: string
+                  paymentMethods:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SupportedBrand'
+                  info:
+                    type: object
+                    additionalProperties: true
+                  receipt:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      text:
+                        type: string
+                  requestId:
+                    type: string
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /terminals/{terminalAlias}/status:
+    get:
+      summary: Read terminal status
+      description: Returns live terminal status from the terminal plus the proxy's cached status, reachability, and last status-change metadata.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Terminal status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  terminalAlias:
+                    type: string
+                  status:
+                    type: string
+                  statusSource:
+                    type: string
+                  lastStatusChangeAt:
+                    type: string
+                    format: date-time
+                  reachable:
+                    type: boolean
+                  device:
+                    type: object
+                    additionalProperties: true
+                  services:
+                    type: object
+                    additionalProperties: true
+                  initialisedAcquirers:
+                    type: array
+                    items:
+                      type: string
+                  terminalMessages:
+                    type: array
+                    items:
+                      type: string
+                  requestId:
+                    type: string
+  /terminals/{terminalAlias}/ping:
+    get:
+      summary: Ping terminal
+      description: Sends four ICMP ping packets to the configured terminal IP and reports only whether the terminal is reachable at the network level.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Terminal answered ping.
+        '503':
+          description: Terminal did not answer ping.
+  /terminals/{terminalAlias}/receipts/latest:
+    get:
+      summary: Get the latest stored receipt bundle for a terminal
+      description: Returns the most recent stored receipt bundle for the terminal, whether it came from a transaction flow or from a service flow such as activation, initialisation, submission, or close day.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Latest receipt bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalReceiptLatestEnvelope'
+  /terminals/{terminalAlias}/receipts:
+    get:
+      summary: List recent stored receipt bundles for a terminal
+      description: Lists recent stored receipt bundles for the terminal across both transaction flows and service flows.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+      responses:
+        '200':
+          description: Recent receipt bundles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalReceiptListEnvelope'
+  /terminals/{terminalAlias}/payment:
+    post:
+      summary: Start a payment or pre-authorisation
+      description: Uses the configured device callback port for interactive receipt and display handling. Send `cashback` with a positive sale amount for ep2 purchase-with-cashback. The `amount` field is the total EFT amount, and `cashback` must be less than or equal to `amount`.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Final payment result when responseMode=sync
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionSuccess'
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResponse'
+  /terminals/{terminalAlias}/refund:
+    post:
+      summary: Start a terminal-side refund
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '200':
+          description: Final refund result when responseMode=sync
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResponse'
+  /terminals/{terminalAlias}/reversal:
+    post:
+      summary: Reverse the last terminal transaction
+      description: Starts OPI `PaymentReversal`. The original transaction changes to `reversing` after the request reaches the terminal, then to `reversed` on success. An explicit reversal failure restores its previous status; an uncertain reversal result leaves it `unknown`. For Swiss ep2 terminals the original approval code is not sent; if the proxy has a previous successful transaction for the terminal, its amount is reused.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReversalRequest'
+      responses:
+        '200':
+          description: Final reversal result when responseMode=sync
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionSuccess'
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResponse'
+  /terminals/{terminalAlias}/submit:
+    post:
+      summary: Submit completed terminal transactions
+      description: Runs the canonical terminal submission operation. At the OPI protocol layer, the proxy sends `TransmitTrx` to submit completed transactions to the payment systems for processing. Stored service receipts are returned as metadata with file locations.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequest'
+      responses:
+        '200':
+          description: Final submission result when responseMode=sync
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalServiceSuccess'
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Preference-Applied:
+              schema:
+                type: string
+                enum: [respond-async]
+  /terminals/{terminalAlias}/reprint:
+    post:
+      summary: Reprint the last receipt from the terminal
+      description: Uses the terminal `TicketReprint` request. The route stays available even for printerless terminals because some devices can still resend receipt output over the callback channel.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForcedServiceRequest'
+      responses:
+        '200':
+          description: Reprint result
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Preference-Applied:
+              schema:
+                type: string
+                enum: [respond-async]
+  /terminals/{terminalAlias}/repeat:
+    post:
+      summary: Verify and reconcile the proxy's latest transaction
+      description: Sends OPI `CardServiceRequest` with `RequestType="RepeatLastMessage"` and compares `OriginalHeader.RequestID` with the proxy's latest financial transaction. A conclusive `OriginalHeader.OverallResult` updates the stored transaction when needed and clears its recovery blocker. This operation is synchronous and never creates a financial transaction. `transactionUpdated` is false only when the terminal verified that the returned transaction was already current.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      responses:
+        '200':
+          description: The latest transaction was verified and, if necessary, reconciled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepeatLastMessageResponse'
+              examples:
+                reconciledPayment:
+                  value:
+                    terminalAlias: q30-1
+                    transactionUpdated: true
+                    transaction:
+                      transactionId: trx_123
+                      amount: '12.50'
+                      currency: CHF
+                      terminalAlias: q30-1
+                      status: succeeded
+                    requestId: req_123
+        '404':
+          description: No stored financial transaction is available to verify.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: The stored transaction lacks a usable OPI RequestID, or a conclusive stored transaction does not match the terminal's last transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: RepeatLastMessage failed or the terminal response did not contain a usable OriginalHeader.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /terminals/{terminalAlias}/activate:
+    post:
+      summary: Activate the terminal session
+      description: Triggers terminal activation, falling back to Login for terminal variants that expect the legacy request type. `force=true` also allows a local proxy-state override when the terminal keeps answering `DeviceUnavailable`.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForcedServiceRequest'
+      responses:
+        '200':
+          description: Activation result
+  /terminals/{terminalAlias}/deactivate:
+    post:
+      summary: Deactivate the terminal session
+      description: Triggers terminal deactivation, falling back to LogOff for terminal variants that expect the legacy request type. `force=true` also allows a local proxy-state override when the terminal keeps answering `DeviceUnavailable`.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForcedServiceRequest'
+      responses:
+        '200':
+          description: Deactivation result
+  /terminals/{terminalAlias}/abort:
+    post:
+      summary: Abort the active terminal flow
+      description: 'Forwards OPI AbortRequest only while the proxy has an active pending card transaction. A successful abort returns the affected original transaction with status aborted; it does not create a separate financial transaction. Requests without an active transaction are rejected locally so repeated standalone aborts cannot destabilize the terminal. If the terminal reports unavailable while an active transaction is still pending, the proxy returns 202 with abortStatus: unconfirmed and the active transaction id so clients can keep polling.'
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      responses:
+        '200':
+          description: Abort result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalServiceSuccess'
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used, or abort status is unconfirmed while an active transaction is still pending'
+          headers:
+            Preference-Applied:
+              schema:
+                type: string
+                enum: [respond-async]
+  /terminals/{terminalAlias}/close:
+    post:
+      summary: Close the terminal day
+      description: Triggers OPI `CloseDay` to perform the final balance and log off the terminal at the end of the flow. Generated service receipts are returned as metadata with receipt file locations.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequest'
+      responses:
+        '200':
+          description: Final close result when responseMode=sync
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalServiceSuccess'
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Preference-Applied:
+              schema:
+                type: string
+                enum: [respond-async]
+  /terminals/{terminalAlias}/config:
+    post:
+      summary: Refresh terminal OS configuration
+      description: Triggers OPI `ContactTMS` to fetch the latest terminal OS configuration from the accept host ep2. Generated service receipts are returned as metadata with receipt file locations.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequest'
+      responses:
+        '200':
+          description: Final configuration result when responseMode=sync
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalServiceSuccess'
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Preference-Applied:
+              schema:
+                type: string
+                enum: [respond-async]
+  /terminals/{terminalAlias}/init:
+    post:
+      summary: Refresh merchant and acquirer initialisation
+      description: Triggers OPI `ContactAcq` to fetch the latest merchant-contract initialisation data and brand information from the accept host ep2. Generated service receipts are returned as metadata with receipt file locations.
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequest'
+      responses:
+        '200':
+          description: Final initialisation result when responseMode=sync
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalServiceSuccess'
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Preference-Applied:
+              schema:
+                type: string
+                enum: [respond-async]
+  /terminals/{terminalAlias}/reset:
+    post:
+      summary: Restart the terminal app
+      parameters:
+        - name: terminalAlias
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      responses:
+        '200':
+          description: Reset result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalServiceSuccess'
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Preference-Applied:
+              schema:
+                type: string
+                enum: [respond-async]
+  /transactions/{transactionId}:
+    get:
+      summary: Read a stored transaction
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Stored transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionReadEnvelope'
+    patch:
+      summary: Manually reconcile a stored transaction
+      description: Updates only local proxy state after external reconciliation; it does not send a terminal request. At least one of `status`, `amount`, or `tip` is required. When a positive tip is supplied, `totalAmount` is derived from amount plus tip rather than being directly patchable. A conclusive `status` clears any cached recovery cooldown and transaction lock so a new card operation can start immediately. All other transaction fields remain terminal-controlled and cannot be patched.
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionPatchRequest'
+      responses:
+        '200':
+          description: Updated local transaction state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionReadEnvelope'
+              examples:
+                reconciled:
+                  value:
+                    message: Transaction reconciled successfully.
+                    transaction:
+                      transactionId: trx_123
+                      amount: '12.50'
+                      totalAmount: '14.50'
+                      tip: '2.00'
+                      currency: CHF
+                      terminalAlias: q30-1
+                      status: succeeded
+                    requestId: req_123
+        '400':
+          description: Empty body, unsupported field, invalid amount, or status not allowed for this transaction type.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Transaction not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /transactions/{transactionId}/receipts:
+    get:
+      summary: Read stored receipts for a transaction
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Stored receipt bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptBundleEnvelope'
+  /transactions/{transactionId}/capture:
+    post:
+      summary: Capture a pre-authorised payment
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowUpRequest'
+      responses:
+        '200':
+          description: Final capture result when responseMode=sync
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResponse'
+  /transactions/{transactionId}/cancel:
+    post:
+      summary: Cancel a pre-authorised payment
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowUpRequest'
+      responses:
+        '200':
+          description: Final cancel result when responseMode=sync
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResponse'
+  /transactions/{transactionId}/refund:
+    post:
+      summary: Refund a stored sale or captured transaction
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowUpRequest'
+      responses:
+        '200':
+          description: Final refund result when responseMode=sync
+        '202':
+          description: 'Operation accepted when responseMode=async or Prefer: respond-async is used'
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResponse'

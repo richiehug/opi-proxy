@@ -1,0 +1,240 @@
+{
+  "RX5000": {
+    "label": "Ingenico RX5000",
+    "category": "integrated",
+    "manufacturer": "Ingenico",
+    "hasPrinter": false,
+    "supportsJournalPrinter": true,
+    "supportsEJournal": true,
+    "supportsRefund": true,
+    "supportsReversal": true,
+    "supportsPreauth": true,
+    "supportsCapture": true,
+    "supportsCancel": true,
+    "supportsReprint": true,
+    "supportsTransmit": true,
+    "supportsManualPan": false,
+    "supportsForceAcceptance": false,
+    "supportsCashback": false,
+    "defaultPorts": {
+      "payChannel0": 4100,
+      "deviceChannel1": 4102
+    },
+    "defaults": {
+      "currency": "CHF",
+      "language": "en",
+      "receiptHandling": {
+        "customer": "external",
+        "merchant": "external"
+      },
+      "autoCapture": true,
+      "requestTransactionInformation": true,
+      "requestToken": true,
+      "requestReceiptHeader": true
+    }
+  },
+  "Q30": {
+    "label": "PAX Q30",
+    "category": "integrated",
+    "manufacturer": "PAX",
+    "hasPrinter": false,
+    "supportsJournalPrinter": false,
+    "supportsEJournal": true,
+    "supportsRefund": true,
+    "supportsReversal": true,
+    "supportsPreauth": true,
+    "supportsCapture": true,
+    "supportsCancel": true,
+    "supportsReprint": true,
+    "supportsTransmit": true,
+    "supportsManualPan": false,
+    "supportsForceAcceptance": false,
+    "supportsCashback": false,
+    "defaultPorts": {
+      "payChannel0": 4100,
+      "deviceChannel1": 4102
+    },
+    "defaults": {
+      "currency": "CHF",
+      "language": "en",
+      "receiptHandling": {
+        "customer": "external",
+        "merchant": "external"
+      },
+      "autoCapture": true,
+      "requestTransactionInformation": true,
+      "requestToken": true,
+      "requestReceiptHeader": true
+    }
+  },
+  "DX8000": {
+    "label": "Ingenico DX8000",
+    "category": "standalone",
+    "manufacturer": "Ingenico",
+    "hasPrinter": true,
+    "supportsJournalPrinter": true,
+    "supportsEJournal": true,
+    "supportsRefund": true,
+    "supportsReversal": true,
+    "supportsPreauth": true,
+    "supportsCapture": true,
+    "supportsCancel": true,
+    "supportsReprint": true,
+    "supportsTransmit": true,
+    "supportsManualPan": false,
+    "supportsForceAcceptance": false,
+    "supportsCashback": false,
+    "defaultPorts": {
+      "payChannel0": 4100,
+      "deviceChannel1": 4102
+    },
+    "defaults": {
+      "currency": "CHF",
+      "language": "en",
+      "receiptHandling": {
+        "customer": "local",
+        "merchant": "local"
+      },
+      "autoCapture": true,
+      "requestTransactionInformation": true,
+      "requestToken": true,
+      "requestReceiptHeader": true
+    }
+  },
+  "EX8000": {
+    "label": "Ingenico EX8000",
+    "category": "standalone",
+    "manufacturer": "Ingenico",
+    "hasPrinter": false,
+    "supportsJournalPrinter": true,
+    "supportsEJournal": true,
+    "supportsRefund": true,
+    "supportsReversal": true,
+    "supportsPreauth": true,
+    "supportsCapture": true,
+    "supportsCancel": true,
+    "supportsReprint": true,
+    "supportsTransmit": true,
+    "supportsManualPan": false,
+    "supportsForceAcceptance": false,
+    "supportsCashback": false,
+    "defaultPorts": {
+      "payChannel0": 4100,
+      "deviceChannel1": 4102
+    },
+    "defaults": {
+      "currency": "CHF",
+      "language": "en",
+      "receiptHandling": {
+        "customer": "external",
+        "merchant": "external"
+      },
+      "autoCapture": true,
+      "requestTransactionInformation": true,
+      "requestToken": true,
+      "requestReceiptHeader": true
+    }
+  },
+  "A77": {
+    "label": "PAX A77",
+    "category": "standalone",
+    "manufacturer": "PAX",
+    "hasPrinter": false,
+    "supportsJournalPrinter": false,
+    "supportsEJournal": true,
+    "supportsRefund": true,
+    "supportsReversal": true,
+    "supportsPreauth": true,
+    "supportsCapture": true,
+    "supportsCancel": true,
+    "supportsReprint": true,
+    "supportsTransmit": true,
+    "supportsManualPan": false,
+    "supportsForceAcceptance": false,
+    "supportsCashback": false,
+    "defaultPorts": {
+      "payChannel0": 4100,
+      "deviceChannel1": 4102
+    },
+    "defaults": {
+      "currency": "CHF",
+      "language": "en",
+      "receiptHandling": {
+        "customer": "external",
+        "merchant": "external"
+      },
+      "autoCapture": true,
+      "requestTransactionInformation": true,
+      "requestToken": true,
+      "requestReceiptHeader": true
+    }
+  },
+  "IM15": {
+    "label": "PAX IM15",
+    "category": "unattended",
+    "manufacturer": "PAX",
+    "hasPrinter": false,
+    "supportsJournalPrinter": false,
+    "supportsEJournal": true,
+    "supportsRefund": false,
+    "supportsReversal": false,
+    "supportsPreauth": false,
+    "supportsCapture": false,
+    "supportsCancel": false,
+    "supportsReprint": false,
+    "supportsTransmit": true,
+    "supportsManualPan": false,
+    "supportsForceAcceptance": false,
+    "supportsCashback": false,
+    "defaultPorts": {
+      "payChannel0": 4100,
+      "deviceChannel1": 4102
+    },
+    "defaults": {
+      "currency": "CHF",
+      "language": "en",
+      "receiptHandling": {
+        "customer": "external",
+        "merchant": "external"
+      },
+      "autoCapture": true,
+      "requestTransactionInformation": true,
+      "requestToken": true,
+      "requestReceiptHeader": true
+    }
+  },
+  "IM30": {
+    "label": "PAX IM30",
+    "category": "unattended",
+    "manufacturer": "PAX",
+    "hasPrinter": false,
+    "supportsJournalPrinter": false,
+    "supportsEJournal": true,
+    "supportsRefund": false,
+    "supportsReversal": false,
+    "supportsPreauth": false,
+    "supportsCapture": false,
+    "supportsCancel": false,
+    "supportsReprint": false,
+    "supportsTransmit": true,
+    "supportsManualPan": false,
+    "supportsForceAcceptance": false,
+    "supportsCashback": false,
+    "defaultPorts": {
+      "payChannel0": 4100,
+      "deviceChannel1": 4102
+    },
+    "defaults": {
+      "currency": "CHF",
+      "language": "en",
+      "receiptHandling": {
+        "customer": "external",
+        "merchant": "external"
+      },
+      "autoCapture": true,
+      "requestTransactionInformation": true,
+      "requestToken": true,
+      "requestReceiptHeader": true
+    }
+  }
+}

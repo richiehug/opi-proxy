@@ -1,0 +1,30 @@
+OPI Proxy Distribution License
+Copyright © 2026 Richard Hug
+
+Permission is granted to run the distributed OPI Proxy container, including
+in commercial environments, to integrate compatible OPI payment terminals
+with POS/ECR and other applications. You may distribute the unmodified
+container with those applications to customers. Retain this license and all
+copyright and attribution notices with the distribution.
+
+You may adapt the supplied deployment configuration and examples for your
+installation. Access to runtime source files inside the container is granted
+only as necessary to run the distributed software. It does not grant a
+separate right to modify, republish, or redistribute the proxy source code.
+
+Without written permission from Richard Hug, you may not modify the proxy
+runtime, resell it as a standalone product, republish or mirror its standalone
+distribution, present it as your own standalone product, or remove copyright
+or attribution information. These restrictions apply only to the extent
+permitted by applicable law. All other rights are reserved.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. TO THE EXTENT PERMITTED BY APPLICABLE LAW, RICHARD HUG SHALL
+NOT BE LIABLE FOR CLAIMS, DAMAGES OR OTHER LIABILITY ARISING FROM USE OF THE
+SOFTWARE, INCLUDING LOST REVENUE, LOST DATA OR PAYMENT PROCESSING INTERRUPTION.
+Nothing in these terms excludes liability that cannot lawfully be excluded.
+
+Maintenance and support are best effort only. No SLA, guaranteed response or
+resolution time, release schedule, or obligation to provide fixes or support
+is granted. Third-party components retain their own licenses and notices.

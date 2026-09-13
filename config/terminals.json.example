@@ -1,0 +1,56 @@
+{
+  "front-counter": {
+    "terminalModel": "RX5000",
+    "terminalProfile": "rx5000-default",
+    "ip": "192.168.0.60",
+    "enabled": true,
+    "metadata": {
+      "notes": "Example Ingenico RX5000 terminal"
+    }
+  },
+  "mobile-terminal": {
+    "terminalModel": "DX8000",
+    "terminalProfile": "dx8000-default",
+    "ip": "192.168.0.66",
+    "enabled": true,
+    "metadata": {
+      "notes": "Example Ingenico DX8000 terminal with built-in printer"
+    }
+  },
+  "mobile-printerless": {
+    "terminalModel": "EX8000",
+    "terminalProfile": "ex8000-default",
+    "ip": "192.168.0.67",
+    "enabled": true,
+    "metadata": {
+      "notes": "Example Ingenico EX8000 mobile terminal without built-in printer"
+    }
+  },
+  "mobile-pax": {
+    "terminalModel": "A77",
+    "terminalProfile": "a77-default",
+    "ip": "192.168.0.68",
+    "enabled": true,
+    "metadata": {
+      "notes": "Example PAX A77 mobile terminal without built-in printer"
+    }
+  },
+  "lane-2": {
+    "terminalModel": "Q30",
+    "terminalProfile": "q30-default",
+    "ip": "192.168.0.61",
+    "enabled": true,
+    "metadata": {
+      "notes": "Example PAX Q30 terminal"
+    }
+  },
+  "vending-1": {
+    "terminalModel": "IM30",
+    "terminalProfile": "im30-default",
+    "ip": "192.168.0.70",
+    "enabled": true,
+    "metadata": {
+      "notes": "Example unattended Ingenico IM30 terminal"
+    }
+  }
+}

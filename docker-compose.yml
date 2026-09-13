@@ -1,0 +1,34 @@
+services:
+  proxy:
+    image: ${OPI_PROXY_IMAGE:-ghcr.io/richiehug/opi-proxy:1.0.0}
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./certs:/app/certs
+    command: ["node", "src/index.js", "serve"]
+
+  auth-init:
+    image: ${OPI_PROXY_IMAGE:-ghcr.io/richiehug/opi-proxy:1.0.0}
+    profiles: ["tools"]
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./certs:/app/certs
+    command: ["node", "src/index.js", "auth", "init"]
+
+  tls-init-dev:
+    image: ${OPI_PROXY_IMAGE:-ghcr.io/richiehug/opi-proxy:1.0.0}
+    profiles: ["tools"]
+    volumes:
+      - ./certs:/app/certs
+    command: ["node", "src/index.js", "tls", "init-dev"]
